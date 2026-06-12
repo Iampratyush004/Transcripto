@@ -48,37 +48,36 @@ export async function startDeepgramSession(
   }
 
   const apiKey = process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY;
+  console.log("Deepgram key exists:", !!apiKey);
+console.log("Deepgram key length:", apiKey?.length);
 
   if (!apiKey) {
     onError("Missing Deepgram API key");
     throw new Error("Missing Deepgram API key");
   }
 
-  const wsUrl =
-    "wss://api.deepgram.com/v1/listen?model=nova-2&punctuate=true&interim_results=true";
+  const wsUrl = "wss://api.deepgram.com/v1/listen?model=nova-2&punctuate=true&interim_results=true&encoding=webm";
 
   socket = new WebSocket(wsUrl, ["token", apiKey]);
 
-  await new Promise<void>((resolve, reject) => {
-    if (!socket) {
-      reject(new Error("Socket not created"));
-      return;
+socket.onopen = () => {
+  console.log("Deepgram connected");
+};
+
+socket.onerror = (event) => {
+  console.error("Deepgram websocket error", event);
+};
+
+socket.onclose = (event) => {
+  console.error(
+    "Deepgram closed",
+    {
+      code: event.code,
+      reason: event.reason,
+      wasClean: event.wasClean,
     }
-
-    const timeout = setTimeout(() => {
-      reject(new Error("Connection timeout"));
-    }, 10000);
-
-    socket.onopen = () => {
-      clearTimeout(timeout);
-      resolve();
-    };
-
-    socket.onerror = () => {
-      clearTimeout(timeout);
-      reject(new Error("Deepgram connection failed"));
-    };
-  });
+  );
+};
 
   socket.onmessage = (event) => {
     try {
