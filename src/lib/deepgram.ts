@@ -127,6 +127,7 @@ console.log(
 
       const transcript =
         data.channel?.alternatives?.[0]?.transcript ?? "";
+        console.log("Transcript:", transcript);
 
       if (transcript) {
         onTranscript(
