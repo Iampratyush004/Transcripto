@@ -28,7 +28,7 @@ function cleanup(
     socket.close();
   }
 }
-
+console.log("DEPLOY VERSION 123456");
 export async function startDeepgramSession(
   onTranscript: (text: string, isFinal: boolean) => void,
   onError: (message: string) => void
