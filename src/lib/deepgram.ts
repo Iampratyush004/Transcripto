@@ -147,18 +147,7 @@ mediaRecorder.ondataavailable = (event) => {
 };
 mediaRecorder.start(1000);
 
-  mediaRecorder.ondataavailable = (event) => {
-    
-    if (
-      event.data.size > 0 &&
-      socket?.readyState === WebSocket.OPEN
-    ) {
-      socket.send(event.data);
-    }
-  };
-
-  mediaRecorder.start(250);
-
+  
   return {
     stop: () => {
       stopped = true;
