@@ -91,15 +91,19 @@ await new Promise<void>((resolve, reject) => {
 
       if (data.type !== "Results") return;
 
-      const transcript =
-        data.channel?.alternatives?.[0]?.transcript ?? "";
+   const transcript =
+  data.channel?.alternatives?.[0]?.transcript ?? "";
 
-      if (!transcript.trim()) return;
+console.log("FULL DG DATA:", data);
+console.log("TRANSCRIPT:", transcript);
+console.log("IS FINAL:", data.is_final);
 
-      onTranscript(
-        transcript,
-        Boolean(data.is_final || data.speech_final)
-      );
+if (!transcript.trim()) return;
+
+onTranscript(
+  transcript,
+  Boolean(data.is_final || data.speech_final)
+);
     } catch (error) {
       console.error(error);
     }
