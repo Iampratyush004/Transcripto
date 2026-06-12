@@ -133,21 +133,19 @@ mediaRecorder = new MediaRecorder(stream, {
 });
 
 mediaRecorder.ondataavailable = (event) => {
-  console.log(
-    "Audio chunk:",
-    event.data.size,
-    event.data.type
-  );
+  console.log("==========");
+  console.log("SIZE:", event.data.size);
+  console.log("TYPE:", event.data.type);
 
   if (
     event.data.size > 0 &&
     socket?.readyState === WebSocket.OPEN
   ) {
     socket.send(event.data);
+    console.log("SENT TO DEEPGRAM");
   }
 };
-
-mediaRecorder.start(250);
+mediaRecorder.start(1000);
 
   mediaRecorder.ondataavailable = (event) => {
     
