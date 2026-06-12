@@ -56,29 +56,35 @@ console.log("Deepgram key length:", apiKey?.length);
     throw new Error("Missing Deepgram API key");
   }
 
-  const wsUrl = "wss://api.deepgram.com/v1/listen?model=nova-2&punctuate=true&interim_results=true&encoding=webm";
+  const wsUrl ="wss://api.deepgram.com/v1/listen?model=nova-2&punctuate=true&interim_results=true";
 
   socket = new WebSocket(wsUrl, ["token", apiKey]);
 
-socket.onopen = () => {
-  console.log("Deepgram connected");
-};
+await new Promise<void>((resolve, reject) => {
+  const timeout = setTimeout(() => {
+    reject(new Error("Deepgram connection timeout"));
+  }, 10000);
 
-socket.onerror = (event) => {
-  console.error("Deepgram websocket error", event);
-};
+  socket!.onopen = () => {
+    clearTimeout(timeout);
+    console.log("Deepgram connected");
+    resolve();
+  };
 
-socket.onclose = (event) => {
-  console.error(
-    "Deepgram closed",
-    {
+  socket!.onerror = (event) => {
+    clearTimeout(timeout);
+    console.error("Deepgram websocket error", event);
+    reject(new Error("Deepgram connection failed"));
+  };
+
+  socket!.onclose = (event) => {
+    console.error("Deepgram closed", {
       code: event.code,
       reason: event.reason,
       wasClean: event.wasClean,
-    }
-  );
-};
-
+    });
+  };
+});
   socket.onmessage = (event) => {
     try {
       const data: DeepgramMessage = JSON.parse(event.data);
