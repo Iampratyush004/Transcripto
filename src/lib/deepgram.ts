@@ -86,29 +86,28 @@ await new Promise<void>((resolve, reject) => {
   };
 });
   socket.onmessage = (event) => {
-    try {
-      const data: DeepgramMessage = JSON.parse(event.data);
+  console.log("RAW MESSAGE:", event.data);
 
-      if (data.type !== "Results") return;
+  try {
+    const data = JSON.parse(event.data);
 
-   const transcript =
-  data.channel?.alternatives?.[0]?.transcript ?? "";
+    const transcript =
+      data.channel?.alternatives?.[0]?.transcript ?? "";
 
-console.log("FULL DG DATA:", data);
-console.log("TRANSCRIPT:", transcript);
-console.log("IS FINAL:", data.is_final);
+    console.log("TRANSCRIPT =", transcript);
 
-if (!transcript.trim()) return;
+    if (transcript) {
+      alert(`DG: ${transcript}`);
 
-onTranscript(
-  transcript,
-  Boolean(data.is_final || data.speech_final)
-);
-    } catch (error) {
-      console.error(error);
+      onTranscript(
+        transcript,
+        Boolean(data.is_final || data.speech_final)
+      );
     }
-  };
-
+  } catch (error) {
+    console.error(error);
+  }
+};
   socket.onerror = () => {
     if (!stopped) {
       onError("Deepgram connection failed");
