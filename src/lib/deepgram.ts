@@ -56,7 +56,7 @@ console.log("Deepgram key length:", apiKey?.length);
     throw new Error("Missing Deepgram API key");
   }
 
-  const wsUrl ="wss://api.deepgram.com/v1/listen?model=nova-2&punctuate=true&interim_results=true";
+const wsUrl ="wss://api.deepgram.com/v1/listen?model=nova-2&punctuate=true&interim_results=true";
 
   socket = new WebSocket(wsUrl, ["token", apiKey]);
 
@@ -86,24 +86,24 @@ await new Promise<void>((resolve, reject) => {
   };
 });
   socket.onmessage = (event) => {
-  console.log("RAW MESSAGE:", event.data);
-
   try {
-    const data = JSON.parse(event.data);
+    console.log("RAW MESSAGE:", event.data);
+
+    const data: DeepgramMessage = JSON.parse(event.data);
+
+    if (data.type !== "Results") return;
 
     const transcript =
       data.channel?.alternatives?.[0]?.transcript ?? "";
 
     console.log("TRANSCRIPT =", transcript);
 
-    if (transcript) {
-      alert(`DG: ${transcript}`);
+    if (!transcript.trim()) return;
 
-      onTranscript(
-        transcript,
-        Boolean(data.is_final || data.speech_final)
-      );
-    }
+    onTranscript(
+      transcript,
+      Boolean(data.is_final || data.speech_final)
+    );
   } catch (error) {
     console.error(error);
   }
@@ -121,16 +121,36 @@ await new Promise<void>((resolve, reject) => {
   };
 
   const mimeType = MediaRecorder.isTypeSupported(
-    "audio/webm;codecs=opus"
-  )
-    ? "audio/webm;codecs=opus"
-    : "audio/webm";
+  "audio/webm;codecs=opus"
+)
+  ? "audio/webm;codecs=opus"
+  : "audio/webm";
 
-  mediaRecorder = new MediaRecorder(stream, {
-    mimeType,
-  });
+console.log("MIME TYPE:", mimeType);
+
+mediaRecorder = new MediaRecorder(stream, {
+  mimeType,
+});
+
+mediaRecorder.ondataavailable = (event) => {
+  console.log(
+    "Audio chunk:",
+    event.data.size,
+    event.data.type
+  );
+
+  if (
+    event.data.size > 0 &&
+    socket?.readyState === WebSocket.OPEN
+  ) {
+    socket.send(event.data);
+  }
+};
+
+mediaRecorder.start(250);
 
   mediaRecorder.ondataavailable = (event) => {
+    
     if (
       event.data.size > 0 &&
       socket?.readyState === WebSocket.OPEN
